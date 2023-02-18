@@ -1,6 +1,8 @@
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from dotenv import dotenv_values
 from pymongo import MongoClient
+from book_routes import router as book_router
 
 config = dotenv_values(".env")
 
@@ -21,4 +23,6 @@ def shutdown_db_client():
 
 @app.get("/")
 async def root():
-    return {"message": "Welcome to the PyMongo tutorial!"}
+    return RedirectResponse("/docs")
+
+app.include_router(book_router, tags=["books"], prefix="/book")
