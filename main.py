@@ -3,6 +3,7 @@ from fastapi.responses import RedirectResponse
 from dotenv import dotenv_values
 from pymongo import MongoClient
 from book_routes import router as book_router
+from fastapi import status
 
 config = dotenv_values(".env")
 
@@ -21,7 +22,7 @@ def shutdown_db_client():
     app.mongodb_client.close()
 
 
-@app.get("/")
+@app.get("/", status_code=status.HTTP_302_FOUND, description="Redirects to auto-generated swagger docs for the book API at /docs")
 async def root():
     return RedirectResponse("/docs")
 
