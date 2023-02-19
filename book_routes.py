@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Body, Request, Response, HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from typing import List
+from pymongo.errors import DuplicateKeyError
 
 from models import Book, BookUpdate
 
@@ -10,12 +11,15 @@ router = APIRouter()
 @router.post("/", response_description="Create a new book", status_code=status.HTTP_201_CREATED, response_model=Book)
 def create_book(request: Request, book: Book = Body(...)):
     book = jsonable_encoder(book)
-    new_book = request.app.database["books"].insert_one(book)
-    created_book = request.app.database["books"].find_one(
-        {"_id": new_book.inserted_id}
-    )
-
-    return created_book
+    try:
+        new_book = request.app.database["books"].insert_one(book)
+        created_book = request.app.database["books"].find_one(
+            {"_id": new_book.inserted_id}
+        )
+        return created_book
+    except DuplicateKeyError:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST,
+                            "Duplicate key error - book already exists")
 
 
 @router.get("/", response_description="List all books", status_code=status.HTTP_200_OK, response_model=List[Book])
